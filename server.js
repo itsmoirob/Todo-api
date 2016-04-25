@@ -30,9 +30,6 @@ app.get('/todos', function(req, res) {
         var query = queryParams.q.toLowerCase();
         filteredTodos = _.filter(filteredTodos, function(item) {
             return item.description.toLowerCase().indexOf(query) > -1;
-            // if(item.description.toLowerCase().indexOf(query) > -1) {
-            //     return item;                 
-            // };
         })
     }
 
@@ -42,22 +39,24 @@ app.get('/todos', function(req, res) {
 // get TODOs/:id
 app.get('/todos/:id', function(req, res) {
     var todoId = parseInt(req.params.id, 10);
-    var matchedTodo = _.findWhere(todos, { id: todoId });
-
-    if (matchedTodo) {
-        res.json(matchedTodo);
-    } else {
-        res.status(404).send();
-    }
+    db.todo.findById(todoId).then(function(todo) {
+        if (!!todo) {
+            res.json(todo.toJSON());
+        } else {
+            res.status(404).send('There is no todo ' + todoId);
+        }
+    }, function(e) {
+        res.status(500).send(e);
+    })
 });
 
 // post TODO
 app.post('/todos', function(req, res) {
     var body = _.pick(req.body, 'description', 'completed');
-    
-    db.todo.create(body).then(function (todo) {
+
+    db.todo.create(body).then(function(todo) {
         res.json(todo.toJSON());
-    }, function (e) {
+    }, function(e) {
         res.status(400).json(e);
     });
 });
