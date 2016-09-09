@@ -149,24 +149,36 @@ app.post('/user', function (req, res) {
 	});
 });
 
+// User LOGIN
 app.post('/user/login', function (req, res) {
 	var body = _.pick(req.body, 'email', 'password');
+	var userInstance;
 
 	db.user.authenticate(body).then(function (user) {
 		var token = user.generateToken('authentication');
+		userInstance = user;
 
-		if (token) {
-			res.header('Auth', token).json(user.toPublicJSON());
-		} else {
-			return res.status(401).send(e);
-		}
-	}, function (e) {
+		return db.token.create({
+			token: token
+		});
+	}).then(function (tokenInstance) {
+			res.header('Auth', tokenInstance.get('token')).json(userInstance.toPublicJSON());
+	}).catch(function (e) {
 		res.status(401).send(e);
 	});
 
 });
 
-db.sequelize.sync({force: true}).then(function () {
+// User LOGOUT
+app.delete('/user/login', middleware.requireAuthentication, function (req, res) {
+	req.token.destroy().then(function () {
+		res.status(204).send();
+	}).catch(function () {
+		res.status(500).send();
+	})
+});
+
+db.sequelize.sync({ force: true }).then(function () {
 	app.listen(PORT, function () {
 		console.log('Express listening on PORT: ' + PORT);
 	})
