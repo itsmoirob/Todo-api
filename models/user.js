@@ -62,16 +62,10 @@ module.exports = function (sequelize, Datatypes) {
 				},
 				findByToken: function (token) {
 					return new Promise(function (resolve, reject) {
-						console.log('pretry');
 						try {
-							console.log('try1');
 							var decodedJWT = jwt.verify(token, 'poiuy0987');
-							console.log('try2');
-							console.log('decodedJWT: ', decodedJWT);
 							var bytes = cryptojs.AES.decrypt(decodedJWT.token, 'abc123!"£');
-							console.log('bytes: ', bytes);
 							var tokenData = JSON.parse(bytes.toString(cryptojs.enc.Utf8));
-							console.log('tokenData: ', tokenData);
 
 							user.findById(tokenData.id).then(function (user) {
 								if (user) {
